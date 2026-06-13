@@ -1,16 +1,16 @@
 "use client";
 
-import { useMotionValueEvent, useScroll } from "framer-motion";
-import { Children, ReactNode, useRef } from "react";
+import { useScroll } from "framer-motion";
+import { Children, ReactNode, useEffect, useRef } from "react";
 import { useActiveSection } from "./ActiveSectionContext";
 import { BookProgressContext } from "./BookContext";
 
-/**
- * BookSection is the sticky shell that holds every <BookPage>.
- * It owns the single scroll progress, exposes it to children
- * through context, and publishes the current section ID so
- * the Nav can highlight the page in view.
- */
+const HERO: { id: string; bg: string; textColor: string } = {
+  id: "top",
+  bg: "#ffd700",
+  textColor: "#1a1a1a",
+};
+
 export function BookSection({ children }: { children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
   const count = Children.count(children);
@@ -19,16 +19,47 @@ export function BookSection({ children }: { children: ReactNode }) {
     offset: ["start start", "end end"],
   });
   const { active, setActive } = useActiveSection();
+  const lastId = useRef<string | null>(null);
 
-  useMotionValueEvent(scrollYProgress, "change", (v) => {
-    if (v <= 0.001 || v >= 0.999) return;
-    const idx = Math.max(0, Math.min(count - 1, Math.round(v * count - 0.5)));
-    const child = Children.toArray(children)[idx] as
-      | { props?: { id?: string } }
-      | undefined;
-    const id = child?.props?.id;
-    if (id && id !== active) setActive(id);
-  });
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+    window.scrollTo(0, 0);
+    lastId.current = null;
+    return () => {
+      if ("scrollRestoration" in window.history) {
+        window.history.scrollRestoration = "auto";
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = scrollYProgress.on("change", (v) => {
+      if (v <= 0.005) {
+        lastId.current = null;
+        if (active.id !== HERO.id) setActive(HERO);
+        return;
+      }
+      if (v >= 0.995) {
+        lastId.current = null;
+        return;
+      }
+      const idx = Math.max(0, Math.min(count - 1, Math.round(v * count - 0.5)));
+      const child = Children.toArray(children)[idx] as
+        | { props?: { id?: string; bg?: string; textColor?: string } }
+        | undefined;
+      const id = child?.props?.id;
+      const bg = child?.props?.bg;
+      const textColor = child?.props?.textColor;
+      if (id && bg && textColor && id !== lastId.current) {
+        lastId.current = id;
+        setActive({ id, bg, textColor });
+      }
+    });
+    return unsubscribe;
+  }, [scrollYProgress, count, children, setActive, active.id]);
 
   return (
     <div

@@ -2,10 +2,19 @@
 
 import { BookPage } from "./BookPage";
 
-/**
- * Skills — categorized stack with a small proficiency bar.
- */
-export function Skills({ index, total }: { index: number; total: number }) {
+export function Skills({
+  index,
+  total,
+  id,
+  bg,
+  textColor,
+}: {
+  index: number;
+  total: number;
+  id: string;
+  bg: string;
+  textColor: string;
+}) {
   const groups = [
     {
       title: "Frontend",
@@ -27,9 +36,9 @@ export function Skills({ index, total }: { index: number; total: number }) {
 
   return (
     <BookPage
-      id="skills"
-      bg="#00838f"
-      textColor="#fff8e1"
+      id={id}
+      bg={bg}
+      textColor={textColor}
       page="04 — Skills"
       label="Skills — Lusan Sapkota"
       index={index}

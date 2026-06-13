@@ -2,10 +2,19 @@
 
 import { BookPage } from "./BookPage";
 
-/**
- * Testimonials — quotes from collaborators and clients.
- */
-export function Testimonials({ index, total }: { index: number; total: number }) {
+export function Testimonials({
+  index,
+  total,
+  id,
+  bg,
+  textColor,
+}: {
+  index: number;
+  total: number;
+  id: string;
+  bg: string;
+  textColor: string;
+}) {
   const quotes = [
     {
       quote:
@@ -29,9 +38,9 @@ export function Testimonials({ index, total }: { index: number; total: number })
 
   return (
     <BookPage
-      id="testimonials"
-      bg="#b71c1c"
-      textColor="#fff8e1"
+      id={id}
+      bg={bg}
+      textColor={textColor}
       page="05 — Testimonials"
       label="Testimonials — Lusan Sapkota"
       index={index}

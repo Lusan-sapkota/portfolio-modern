@@ -2,10 +2,19 @@
 
 import { BookPage } from "./BookPage";
 
-/**
- * Contact — ways to reach out.
- */
-export function Contact({ index, total }: { index: number; total: number }) {
+export function Contact({
+  index,
+  total,
+  id,
+  bg,
+  textColor,
+}: {
+  index: number;
+  total: number;
+  id: string;
+  bg: string;
+  textColor: string;
+}) {
   const channels = [
     {
       label: "Email",
@@ -31,9 +40,9 @@ export function Contact({ index, total }: { index: number; total: number }) {
 
   return (
     <BookPage
-      id="contact"
-      bg="#fff8e1"
-      textColor="#3e2723"
+      id={id}
+      bg={bg}
+      textColor={textColor}
       page="07 — Contact"
       label="Contact — Lusan Sapkota"
       index={index}

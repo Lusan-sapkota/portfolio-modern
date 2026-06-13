@@ -2,16 +2,24 @@
 
 import { BookPage } from "./BookPage";
 
-/**
- * About — full-viewport section introducing Lusan
- * Two-column layout: bio on the left, quick-facts grid on the right.
- */
-export function About({ index, total }: { index: number; total: number }) {
+export function About({
+  index,
+  total,
+  id,
+  bg,
+  textColor,
+}: {
+  index: number;
+  total: number;
+  id: string;
+  bg: string;
+  textColor: string;
+}) {
   return (
     <BookPage
-      id="about"
-      bg="#b07d5b"
-      textColor="#1a1a1a"
+      id={id}
+      bg={bg}
+      textColor={textColor}
       page="01 — About"
       label="About — Lusan Sapkota"
       index={index}

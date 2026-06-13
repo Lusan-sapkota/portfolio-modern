@@ -2,10 +2,19 @@
 
 import { BookPage } from "./BookPage";
 
-/**
- * Education — degrees, certifications and self-directed study.
- */
-export function Education({ index, total }: { index: number; total: number }) {
+export function Education({
+  index,
+  total,
+  id,
+  bg,
+  textColor,
+}: {
+  index: number;
+  total: number;
+  id: string;
+  bg: string;
+  textColor: string;
+}) {
   const items = [
     {
       year: "2024",
@@ -29,9 +38,9 @@ export function Education({ index, total }: { index: number; total: number }) {
 
   return (
     <BookPage
-      id="education"
-      bg="#3e2723"
-      textColor="#fff8e1"
+      id={id}
+      bg={bg}
+      textColor={textColor}
       page="06 — Education"
       label="Education — Lusan Sapkota"
       index={index}

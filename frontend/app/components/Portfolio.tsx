@@ -2,10 +2,19 @@
 
 import { BookPage } from "./BookPage";
 
-/**
- * Portfolio — selected projects across web, mobile and AI.
- */
-export function Portfolio({ index, total }: { index: number; total: number }) {
+export function Portfolio({
+  index,
+  total,
+  id,
+  bg,
+  textColor,
+}: {
+  index: number;
+  total: number;
+  id: string;
+  bg: string;
+  textColor: string;
+}) {
   const projects = [
     {
       tag: "Web · SaaS",
@@ -35,9 +44,9 @@ export function Portfolio({ index, total }: { index: number; total: number }) {
 
   return (
     <BookPage
-      id="portfolio"
-      bg="#004d40"
-      textColor="#fff8e1"
+      id={id}
+      bg={bg}
+      textColor={textColor}
       page="03 — Portfolio"
       label="Portfolio — Lusan Sapkota"
       index={index}

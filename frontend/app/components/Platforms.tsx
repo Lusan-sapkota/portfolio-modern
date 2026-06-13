@@ -2,10 +2,19 @@
 
 import { BookPage } from "./BookPage";
 
-/**
- * Platforms — where to find Lusan online.
- */
-export function Platforms({ index, total }: { index: number; total: number }) {
+export function Platforms({
+  index,
+  total,
+  id,
+  bg,
+  textColor,
+}: {
+  index: number;
+  total: number;
+  id: string;
+  bg: string;
+  textColor: string;
+}) {
   const platforms = [
     { name: "GitHub", handle: "Lusan-sapkota", href: "https://github.com/Lusan-sapkota" },
     { name: "LinkedIn", handle: "Lusan Sapkota", href: "https://www.linkedin.com/in/lusan-sapkota-aa087b39b" },
@@ -17,9 +26,9 @@ export function Platforms({ index, total }: { index: number; total: number }) {
 
   return (
     <BookPage
-      id="platforms"
-      bg="#d84315"
-      textColor="#fff8e1"
+      id={id}
+      bg={bg}
+      textColor={textColor}
       page="08 — Platforms"
       label="Platforms — Lusan Sapkota"
       index={index}

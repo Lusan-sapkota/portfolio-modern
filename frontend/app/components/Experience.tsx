@@ -2,10 +2,19 @@
 
 import { BookPage } from "./BookPage";
 
-/**
- * Experience — roles, companies and a timeline of impact.
- */
-export function Experience({ index, total }: { index: number; total: number }) {
+export function Experience({
+  index,
+  total,
+  id,
+  bg,
+  textColor,
+}: {
+  index: number;
+  total: number;
+  id: string;
+  bg: string;
+  textColor: string;
+}) {
   const roles = [
     {
       year: "2023 — Present",
@@ -32,9 +41,9 @@ export function Experience({ index, total }: { index: number; total: number }) {
 
   return (
     <BookPage
-      id="experience"
-      bg="#006064"
-      textColor="#fff8e1"
+      id={id}
+      bg={bg}
+      textColor={textColor}
       page="02 — Experience"
       label="Experience — Lusan Sapkota"
       index={index}
