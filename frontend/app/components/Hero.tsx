@@ -1,11 +1,13 @@
 "use client";
 
+import { motion } from "framer-motion";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { swipeChild, swipeGroup, swipeSection } from "../lib/motion";
 
 /**
  * Hero — clean magazine layout, fully responsive
- * 100vh · watermark behind · toggleable portrait · mobile menu.
+ * 100vh · watermark behind · toggleable portrait · mobile menu · swipe-in on view.
  */
 export function Hero() {
   const ref = useRef<HTMLDivElement>(null);
@@ -16,7 +18,6 @@ export function Hero() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [waterSize, setWaterSize] = useState<number>(320);
 
-  // Subtle mouse parallax on the character only
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -33,7 +34,6 @@ export function Hero() {
     return () => el.removeEventListener("mousemove", onMove);
   }, []);
 
-  // Dynamically size the LUSAN watermark to fit its container
   useEffect(() => {
     const container = waterRef.current;
     const text = waterTextRef.current;
@@ -43,7 +43,6 @@ export function Hero() {
       const containerWidth = container.offsetWidth;
       if (containerWidth === 0) return;
 
-      // Measure text width at a known font-size, then scale
       const testSize = 100;
       const prev = text.style.fontSize;
       text.style.fontSize = `${testSize}px`;
@@ -52,7 +51,6 @@ export function Hero() {
 
       if (measured === 0) return;
 
-      // 0.96 leaves a small breathing margin so letters aren't flush with the edge
       const target = (testSize * containerWidth) / measured * 0.96;
       setWaterSize(target);
     };
@@ -87,22 +85,26 @@ export function Hero() {
   ];
 
   return (
-    <section
+    <motion.section
       ref={ref}
+      variants={swipeSection}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-10% 0px" }}
       className="relative w-full min-h-[100svh] sm:h-screen overflow-hidden isolate bg-[#ffd700] flex flex-col"
       aria-label="Hero — Lusan Sapkota"
     >
-      {/* Yellow radial glow */}
       <div className="hero-glow absolute inset-0 -z-10" aria-hidden />
       <div className="hero-grain absolute inset-0 -z-10" aria-hidden />
 
-      {/* Top bar — h-14 desktop, h-12 mobile */}
-      <header className="relative z-30 shrink-0 h-12 sm:h-14 flex items-center justify-between gap-2 sm:gap-4 px-4 sm:px-8 lg:px-14">
-        {/* Logo */}
+      <motion.header
+        variants={swipeChild}
+        className="relative z-30 shrink-0 h-12 sm:h-14 flex items-center justify-between gap-2 sm:gap-4 px-4 sm:px-8 lg:px-14"
+      >
         <a
           href="#top"
           aria-label="Lusan Sapkota — Home"
-          className="rise-in inline-flex items-center shrink-0 rounded-[8px] bg-[#1a1a1a] px-2.5 sm:px-3 py-1 sm:py-1.5 hover:scale-[1.02] transition-transform shadow-md"
+          className="inline-flex items-center shrink-0 rounded-[8px] bg-[#1a1a1a] px-2.5 sm:px-3 py-1 sm:py-1.5 hover:scale-[1.02] transition-transform shadow-md"
         >
           <Image
             src="/logo/logo.png"
@@ -114,9 +116,8 @@ export function Hero() {
           />
         </a>
 
-        {/* Right cluster: Contact + hamburger */}
         <div className="flex items-center gap-2 sm:gap-3">
-          <nav className="hidden lg:flex items-center gap-7 text-[1rem] font-medium text-[#1a1a1a]/80 rise-in delay-1">
+          <nav className="hidden lg:flex items-center gap-7 text-[1rem] font-medium text-[#1a1a1a]/80">
             {navItems.map((item) => (
               <a key={item.href} href={item.href} className="hover:text-[#1a1a1a] transition whitespace-nowrap">
                 {item.label}
@@ -124,7 +125,6 @@ export function Hero() {
             ))}
           </nav>
 
-          {/* Hamburger — mobile/tablet only */}
           <button
             type="button"
             onClick={() => setMenuOpen((v) => !v)}
@@ -145,12 +145,11 @@ export function Hero() {
             </svg>
           </button>
         </div>
-      </header>
+      </motion.header>
 
-      {/* Mobile menu — slides down from header */}
       {menuOpen && (
         <nav
-          className="lg:hidden relative z-30 shrink-0 border-b border-[#1a1a1a]/15 bg-[#1a1a1a] text-[#ffd700] rise-in"
+          className="lg:hidden relative z-30 shrink-0 border-b border-[#1a1a1a]/15 bg-[#1a1a1a] text-[#ffd700]"
           aria-label="Mobile navigation"
         >
           <ul className="flex flex-col py-2">
@@ -169,11 +168,14 @@ export function Hero() {
         </nav>
       )}
 
-      {/* Main area */}
-      <div className="relative flex-1 min-h-0 px-4 sm:px-8 lg:px-14 flex flex-col">
-        {/* Character stage — responsive height, smaller on mobile */}
-        <div className="relative min-h-0 flex items-end justify-center h-[48vh] min-[480px]:h-[55vh] sm:h-[68vh] md:h-[72vh] lg:h-[76vh]">
-          {/* LUSAN watermark — hidden on smallest mobile, dynamically sized to fit */}
+      <motion.div
+        variants={swipeGroup}
+        className="relative flex-1 min-h-0 px-4 sm:px-8 lg:px-14 flex flex-col"
+      >
+        <motion.div
+          variants={swipeChild}
+          className="relative min-h-0 flex items-end justify-center h-[48vh] min-[480px]:h-[55vh] sm:h-[68vh] md:h-[72vh] lg:h-[76vh]"
+        >
           <div
             ref={waterRef}
             className="pointer-events-none absolute inset-0 hidden min-[480px]:flex items-center justify-center select-none overflow-hidden"
@@ -181,7 +183,7 @@ export function Hero() {
           >
             <span
               ref={waterTextRef}
-              className="font-sans font-black tracking-[-0.06em] leading-none fade-in whitespace-nowrap"
+              className="font-sans font-black tracking-[-0.06em] leading-none whitespace-nowrap"
               style={{
                 fontSize: `${waterSize}px`,
                 color: "rgba(0, 96, 100, 0.32)",
@@ -192,7 +194,6 @@ export function Hero() {
             </span>
           </div>
 
-          {/* Character */}
           <div
             className="relative h-full w-auto aspect-[2/3] max-w-[80vw] sm:max-w-[70vw] will-change-transform char-fade-bottom"
             style={{
@@ -210,11 +211,12 @@ export function Hero() {
               className="object-contain transition-opacity duration-500"
             />
           </div>
-        </div>
+        </motion.div>
 
-        {/* Bottom info — column on mobile, row on sm+ */}
-        <div className="relative z-20 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 sm:gap-6 pt-1.5 sm:pt-2 pb-3 sm:pb-4 lg:pb-5 rise-in delay-3">
-          {/* Left: name + description + meta */}
+        <motion.div
+          variants={swipeChild}
+          className="relative z-20 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 sm:gap-6 pt-1.5 sm:pt-2 pb-3 sm:pb-4 lg:pb-5"
+        >
           <div className="flex flex-col items-start gap-2 sm:gap-2.5 min-w-0">
             <h2 className="font-sans font-black text-[#1a1a1a] leading-[0.95] tracking-[-0.04em] text-2xl min-[480px]:text-3xl sm:text-4xl md:text-5xl lg:text-6xl flex flex-wrap items-baseline gap-x-2 sm:gap-x-3 gap-y-1">
               <span>Lusan Sapkota</span>
@@ -226,7 +228,6 @@ export function Hero() {
               Full-stack developer with 4+ years of experience building scalable web, mobile, and backend systems, delivering end-to-end solutions from architecture to deployment.
             </p>
 
-            {/* Meta row — wraps cleanly on small screens */}
             <div className="flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-1.5 sm:gap-y-2 mt-0.5 sm:mt-1 text-[10px] sm:text-[11px] md:text-xs font-mono uppercase tracking-[0.16em] sm:tracking-[0.18em] text-[#1a1a1a]/75">
               <span className="inline-flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#006064]" />
@@ -241,8 +242,7 @@ export function Hero() {
             </div>
           </div>
 
-          {/* Right: Meet the Character — clickable, swaps main image */}
-          <div className="shrink-0 flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3 sm:gap-2 rise-in delay-4">
+          <div className="shrink-0 flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3 sm:gap-2">
             <button
               type="button"
               onClick={() => setShowFront((v) => !v)}
@@ -265,7 +265,6 @@ export function Hero() {
                   sizes="(min-width: 768px) 80px, 64px"
                   className="object-cover"
                 />
-                {/* swap hint */}
                 <span className="absolute inset-0 grid place-items-center bg-[#1a1a1a]/0 group-hover:bg-[#1a1a1a]/40 transition-colors">
                   <svg
                     viewBox="0 0 24 24"
@@ -285,7 +284,6 @@ export function Hero() {
               </div>
             </button>
 
-            {/* Below thumb — angle counter (hidden on mobile to save space) */}
             <div className="hidden sm:flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em] text-[#1a1a1a]/60">
               <span className={showFront ? "text-[#1a1a1a]/30" : "text-[#1a1a1a]"}>·</span>
               <span className={showFront ? "text-[#1a1a1a]/40" : "font-semibold"}>01 Side</span>
@@ -293,8 +291,8 @@ export function Hero() {
               <span className={showFront ? "font-semibold" : "text-[#1a1a1a]/40"}>02 Front</span>
             </div>
           </div>
-        </div>
-      </div>
-    </section>
+        </motion.div>
+      </motion.div>
+    </motion.section>
   );
 }
