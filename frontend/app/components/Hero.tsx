@@ -7,7 +7,7 @@ import { swipeChild, swipeGroup, swipeSection } from "../lib/motion";
 
 /**
  * Hero — clean magazine layout, fully responsive
- * 100vh · watermark behind · toggleable portrait · mobile menu · swipe-in on view.
+ * 100vh · watermark behind · toggleable portrait · swipe-in on view.
  */
 export function Hero() {
   const ref = useRef<HTMLDivElement>(null);
@@ -15,7 +15,6 @@ export function Hero() {
   const waterTextRef = useRef<HTMLSpanElement>(null);
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const [showFront, setShowFront] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [waterSize, setWaterSize] = useState<number>(320);
 
   useEffect(() => {
@@ -73,19 +72,9 @@ export function Hero() {
   const thumbLabel = showFront ? "Side" : "Front";
   const thumbKicker = showFront ? "See the" : "Meet the";
 
-  const navItems = [
-    { label: "About", href: "#about" },
-    { label: "Experience", href: "#experience" },
-    { label: "Portfolio", href: "#portfolio" },
-    { label: "Skills", href: "#skills" },
-    { label: "Testimonials", href: "#testimonials" },
-    { label: "Education", href: "#education" },
-    { label: "Contact", href: "#contact" },
-    { label: "Platforms", href: "#platforms" },
-  ];
-
   return (
     <motion.section
+      id="top"
       ref={ref}
       variants={swipeSection}
       initial="hidden"
@@ -97,80 +86,9 @@ export function Hero() {
       <div className="hero-glow absolute inset-0 -z-10" aria-hidden />
       <div className="hero-grain absolute inset-0 -z-10" aria-hidden />
 
-      <motion.header
-        variants={swipeChild}
-        className="relative z-30 shrink-0 h-12 sm:h-14 flex items-center justify-between gap-2 sm:gap-4 px-4 sm:px-8 lg:px-14"
-      >
-        <a
-          href="#top"
-          aria-label="Lusan Sapkota — Home"
-          className="inline-flex items-center shrink-0 rounded-[8px] bg-[#1a1a1a] px-2.5 sm:px-3 py-1 sm:py-1.5 hover:scale-[1.02] transition-transform shadow-md"
-        >
-          <Image
-            src="/logo/logo.png"
-            alt="Lusan Sapkota"
-            width={140}
-            height={32}
-            className="h-5 sm:h-7 w-auto"
-            priority
-          />
-        </a>
-
-        <div className="flex items-center gap-2 sm:gap-3">
-          <nav className="hidden lg:flex items-center gap-7 text-[1rem] font-medium text-[#1a1a1a]/80">
-            {navItems.map((item) => (
-              <a key={item.href} href={item.href} className="hover:text-[#1a1a1a] transition whitespace-nowrap">
-                {item.label}
-              </a>
-            ))}
-          </nav>
-
-          <button
-            type="button"
-            onClick={() => setMenuOpen((v) => !v)}
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={menuOpen}
-            className="lg:hidden inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-[8px] bg-[#1a1a1a] text-[#ffd700] shadow-md shrink-0"
-          >
-            <svg viewBox="0 0 24 24" className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
-              {menuOpen ? (
-                <path d="M6 6l12 12M6 18L18 6" />
-              ) : (
-                <>
-                  <path d="M4 7h16" />
-                  <path d="M4 12h16" />
-                  <path d="M4 17h16" />
-                </>
-              )}
-            </svg>
-          </button>
-        </div>
-      </motion.header>
-
-      {menuOpen && (
-        <nav
-          className="lg:hidden relative z-30 shrink-0 border-b border-[#1a1a1a]/15 bg-[#1a1a1a] text-[#ffd700]"
-          aria-label="Mobile navigation"
-        >
-          <ul className="flex flex-col py-2">
-            {navItems.map((item) => (
-              <li key={item.href}>
-                <a
-                  href={item.href}
-                  onClick={() => setMenuOpen(false)}
-                  className="block px-4 sm:px-8 py-2.5 text-sm font-medium hover:bg-[#ffd700] hover:text-[#1a1a1a] transition"
-                >
-                  {item.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      )}
-
       <motion.div
         variants={swipeGroup}
-        className="relative flex-1 min-h-0 px-4 sm:px-8 lg:px-14 flex flex-col"
+        className="relative flex-1 min-h-0 px-4 sm:px-8 lg:px-14 pt-16 sm:pt-20 flex flex-col"
       >
         <motion.div
           variants={swipeChild}

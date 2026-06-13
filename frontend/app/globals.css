@@ -50,6 +50,17 @@
   --color-ink-soft: var(--ink-soft);
   --color-paper: var(--paper);
   --color-paper-soft: var(--paper-soft);
+
+  /* 8 Section palette */
+  --color-tan: #b07d5b;
+  --color-teal-dark: #006064;
+  --color-teal-deep: #004d40;
+  --color-teal-bright: #00838f;
+  --color-crimson: #b71c1c;
+  --color-espresso: #3e2723;
+  --color-cream: #fff8e1;
+  --color-sienna: #d84315;
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -313,4 +324,67 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
+}
+
+/* ===========================
+   Book page-flip scroll
+   BookSection is the sticky stage; each BookPage
+   is absolutely positioned inside it and animated
+   from a shared scroll progress for a book-like sweep.
+   =========================== */
+html {
+  background: var(--ink);
+}
+
+.book-section {
+  isolation: isolate;
+}
+
+.book-stage {
+  transform-style: preserve-3d;
+}
+
+.book-gutter {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 6%;
+  pointer-events: none;
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.32) 0%,
+    rgba(0, 0, 0, 0.1) 40%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  z-index: 2;
+}
+
+.book-corner {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 28%;
+  height: 28%;
+  pointer-events: none;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0) 55%,
+    rgba(0, 0, 0, 0.2) 100%
+  );
+  z-index: 2;
+}
+
+.book-page-num {
+  position: absolute;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  z-index: 3;
+  pointer-events: none;
 }

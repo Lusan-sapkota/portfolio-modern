@@ -5,6 +5,12 @@ import { createContext, ReactNode, useContext, useEffect, useState } from "react
 
 const LenisContext = createContext<Lenis | null>(null);
 
+/**
+ * LenisProvider sets up a global smooth scroll instance and intercepts
+ * anchor clicks to scroll to the target. Book pages (positioned inside
+ * a sticky stage) need a calculated scroll position based on the page
+ * index, so we resolve those via data-page-index.
+ */
 export function LenisProvider({ children }: { children: ReactNode }) {
   const [lenis, setLenis] = useState<Lenis | null>(null);
 
@@ -31,11 +37,32 @@ export function LenisProvider({ children }: { children: ReactNode }) {
       if (!href) return;
       e.preventDefault();
       if (href === "#top") {
-        instance.scrollTo(0);
-      } else {
-        const el = document.querySelector(href);
-        if (el) instance.scrollTo(el as HTMLElement, { offset: -20 });
+        instance.scrollTo(0, { offset: 0 });
+        return;
       }
+
+      const el = document.querySelector(href) as HTMLElement | null;
+      if (!el) return;
+
+      const pageIndex = el.dataset.pageIndex;
+      const pageTotal = el.dataset.pageTotal;
+      if (pageIndex !== undefined && pageTotal !== undefined) {
+        const idx = Number(pageIndex);
+        const total = Number(pageTotal);
+        const book = el.closest(".book-section") as HTMLElement | null;
+        if (book) {
+          const bookTop = book.getBoundingClientRect().top + window.scrollY;
+          const bookHeight = book.offsetHeight;
+          const vh = window.innerHeight;
+          const scrollable = Math.max(1, bookHeight - vh);
+          const mid = (idx + 0.5) / total;
+          const target = bookTop + mid * scrollable - 20;
+          instance.scrollTo(target, { offset: 0 });
+          return;
+        }
+      }
+
+      instance.scrollTo(el as HTMLElement, { offset: -20 });
     };
 
     document.addEventListener("click", handleClick);
