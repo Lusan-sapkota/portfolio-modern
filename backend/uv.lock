@@ -1,0 +1,23 @@
+version = 1
+revision = 3
+requires-python = ">=3.14"
+
+[[package]]
+name = "backend"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "lcore" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "lcore", specifier = ">=0.0.4" }]
+
+[[package]]
+name = "lcore"
+version = "0.0.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/1d/52/2f255d6022ab87b2a6112e918f401083559e9328cd0d7aaadbb1454cea16/lcore-0.0.4.tar.gz", hash = "sha256:949f23929907413abbd6ece70456189a0b95797f17dc1450e7b388914a2bf1fa", size = 57629, upload-time = "2026-05-22T12:43:55.387Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/49/d8/1c62985827e3efc23f7db4883410b95ec19f6f26f3b5465059174a51a761/lcore-0.0.4-py3-none-any.whl", hash = "sha256:b1ba31e7bb37a845703e1bfe2f7df2c4f0735a3e3125c910c9a00efd4b59e7ea", size = 57323, upload-time = "2026-05-22T12:43:53.749Z" },
+]
