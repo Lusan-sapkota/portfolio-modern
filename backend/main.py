@@ -2,12 +2,17 @@ from lcore import Lcore
 from platforms.wiki import wiki
 from platforms.git import git
 from platforms.store import store
+from admin import admin
+import os
+
+ADMIN_ROUTE = os.getenv("ADMIN_ROUTE", "/configure-deafult-here")
 
 app = Lcore()
 
 app.mount("/wiki", wiki)
 app.mount("/git", git)
 app.mount("/store", store)
+app.mount(ADMIN_ROUTE, admin)
 
 
 @app.route("/hello")
