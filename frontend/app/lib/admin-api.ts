@@ -22,11 +22,11 @@ export function clearToken() {
   localStorage.removeItem("admin_token");
 }
 
-export async function login(username: string, password: string) {
+export async function login(username: string, password: string, website = "") {
   const res = await fetch(`${API}/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({ username, password, website }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: "Login failed" }));
@@ -35,11 +35,11 @@ export async function login(username: string, password: string) {
   return res.json();
 }
 
-export async function verifyOtp(otp: string) {
+export async function verifyOtp(otp: string, username = "admin", website = "") {
   const res = await fetch(`${API}/verify-otp`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ otp }),
+    body: JSON.stringify({ otp, username, website }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: "Invalid OTP" }));
@@ -48,6 +48,52 @@ export async function verifyOtp(otp: string) {
   const data = await res.json();
   setToken(data.token);
   return data.token;
+}
+
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+  website = ""
+) {
+  const res = await fetch(`${API}/change-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({
+      current_password: currentPassword,
+      new_password: newPassword,
+      website,
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Password change failed" }));
+    throw new Error(err.error || "Password change failed");
+  }
+  return res.json();
+}
+
+export async function forgotPassword(email: string, website = "") {
+  await fetch(`${API}/forgot-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, website }),
+  });
+}
+
+export async function resetPassword(
+  token: string,
+  newPassword: string,
+  website = ""
+) {
+  const res = await fetch(`${API}/reset-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token, new_password: newPassword, website }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Reset failed" }));
+    throw new Error(err.error || "Reset failed");
+  }
+  return res.json();
 }
 
 export function logout() {

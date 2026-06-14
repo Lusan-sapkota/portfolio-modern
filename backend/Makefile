@@ -1,12 +1,13 @@
-.PHONY: help install dev setup migrate upgrade downgrade run shell test clean status
+.PHONY: help install dev setup migrate upgrade downgrade run shell test clean status seed seed-admin reset-admin
 
 help:
 	@echo "Portfolio backend (Lcore + PostgreSQL)"
 	@echo ""
 	@echo "Quick start:"
 	@echo "  make install      Install dependencies via uv"
-	@echo "  make setup        Interactive: create .env if missing, validate DATABASE_URL"
+	@echo "  make setup        Create .env if missing, validate DATABASE_URL"
 	@echo "  make upgrade      Apply pending migrations"
+	@echo "  make seed         Seed admin user (idempotent)"
 	@echo "  make run          Start dev server on :8080"
 	@echo ""
 	@echo "Database:"
@@ -14,6 +15,8 @@ help:
 	@echo "  make upgrade      Apply pending migrations"
 	@echo "  make downgrade    Roll back one migration"
 	@echo "  make db-reset     Drop and recreate all tables (DESTRUCTIVE)"
+	@echo "  make seed         Seed admin user (only one allowed)"
+	@echo "  make reset-admin  Rotate admin password from .env"
 	@echo ""
 	@echo "Run:"
 	@echo "  make run          Start dev server on :8080"
@@ -82,6 +85,14 @@ db-reset:
 
 run:
 	python main.py
+
+seed:
+	python seed.py
+
+seed-admin: seed
+
+reset-admin:
+	python -c "from admin.cli import reset_admin; reset_admin()"
 
 shell:
 	uv run python -c "from db import *; import db.models; import IPython; IPython.embed()"

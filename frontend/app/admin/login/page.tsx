@@ -1,34 +1,91 @@
 "use client";
 
 import { useState } from "react";
-import { login, verifyOtp } from "@/app/lib/admin-api";
+import { login, verifyOtp, changePassword, forgotPassword, resetPassword } from "@/app/lib/admin-api";
+import { friendlyError } from "@/app/lib/friendly-errors";
+import { CredentialsStep } from "./_components/CredentialsStep";
+import { OtpStep } from "./_components/OtpStep";
+import { ChangePasswordStep } from "./_components/ChangePasswordStep";
+import { ForgotStep } from "./_components/ForgotStep";
+import { ResetStep } from "./_components/ResetStep";
 
 const ADMIN_ROUTE = process.env.NEXT_PUBLIC_ADMIN_ROUTE || "/configure-deafult-here";
 
-type Step = "credentials" | "otp";
+type Step = "credentials" | "otp" | "change-password" | "forgot" | "reset";
+
+const STEP_HEADING: Record<Step, { title: string; subtitle: (email: string) => string }> = {
+  credentials: {
+    title: "Welcome back.",
+    subtitle: () => "Enter your credentials to receive a verification code.",
+  },
+  otp: {
+    title: "Check your email.",
+    subtitle: (email) => `A 6-digit code was sent to ${email}`,
+  },
+  "change-password": {
+    title: "Set a new password.",
+    subtitle: () => "Choose a strong password you haven't used before.",
+  },
+  forgot: {
+    title: "Forgot your password?",
+    subtitle: () => "Enter your email and we'll send you a reset token.",
+  },
+  reset: {
+    title: "Enter the reset token.",
+    subtitle: () => "Paste the token from your email and choose a new password.",
+  },
+};
+
+const STEP_LABEL: Record<Step, string> = {
+  credentials: "01",
+  otp: "02",
+  "change-password": "03",
+  forgot: "01",
+  reset: "02",
+};
 
 export default function LoginPage() {
   const [step, setStep] = useState<Step>("credentials");
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
   const [otp, setOtp] = useState("");
+
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNew, setShowNew] = useState(false);
+
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetToken, setResetToken] = useState("");
+
+  const [honeypot, setHoneypot] = useState("");
+
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
+  const [mustChange, setMustChange] = useState(false);
 
   async function handleCredentials(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setInfo("");
+    if (honeypot) {
+      setError(friendlyError(new Error("bot"), "login"));
+      return;
+    }
     setLoading(true);
     try {
-      const res = await login(username, password);
+      const res = await login(username, password, honeypot);
       if (res.requires_otp) {
         setEmail(res.email);
+        setMustChange(res.must_change_password);
         setStep("otp");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+      setError(friendlyError(err, "login"));
     } finally {
       setLoading(false);
     }
@@ -37,18 +94,100 @@ export default function LoginPage() {
   async function handleOtp(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    if (honeypot) {
+      setError(friendlyError(new Error("bot"), "otp"));
+      return;
+    }
     setLoading(true);
     try {
-      const token = await verifyOtp(otp);
-      if (token) {
+      await verifyOtp(otp, username, honeypot);
+      if (mustChange) {
+        setStep("change-password");
+      } else {
         window.location.href = ADMIN_ROUTE;
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Invalid OTP");
+      setError(friendlyError(err, "otp"));
     } finally {
       setLoading(false);
     }
   }
+
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    if (honeypot) {
+      setError(friendlyError(new Error("bot"), "changePassword"));
+      return;
+    }
+    if (newPassword.length < 8) {
+      setError("Password must be at least 8 characters");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+    setLoading(true);
+    try {
+      await changePassword(password, newPassword, honeypot);
+      window.location.href = ADMIN_ROUTE;
+    } catch (err) {
+      setError(friendlyError(err, "changePassword"));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleForgot(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setInfo("");
+    if (honeypot) {
+      setError(friendlyError(new Error("bot"), "forgot"));
+      return;
+    }
+    setLoading(true);
+    try {
+      await forgotPassword(resetEmail, honeypot);
+    } catch (err) {
+      setError(friendlyError(err, "forgot"));
+    } finally {
+      setInfo("If the email exists, a reset token has been sent. Check your inbox.");
+      setStep("reset");
+      setLoading(false);
+    }
+  }
+
+  async function handleReset(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    if (honeypot) {
+      setError(friendlyError(new Error("bot"), "reset"));
+      return;
+    }
+    if (newPassword.length < 8) {
+      setError("Password must be at least 8 characters");
+      return;
+    }
+    setLoading(true);
+    try {
+      await resetPassword(resetToken, newPassword, honeypot);
+      setInfo("Password reset successfully. You can now sign in.");
+      setStep("credentials");
+      setPassword("");
+      setOtp("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setResetToken("");
+    } catch (err) {
+      setError(friendlyError(err, "reset"));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const heading = STEP_HEADING[step];
 
   return (
     <div
@@ -60,9 +199,7 @@ export default function LoginPage() {
     >
       <aside
         className="hidden lg:flex flex-col justify-between p-12 w-2/5 relative overflow-hidden"
-        style={{
-          background: "var(--color-ink, #1a1a1a)",
-        }}
+        style={{ background: "var(--color-ink, #1a1a1a)" }}
       >
         <div
           className="absolute inset-0"
@@ -85,7 +222,7 @@ export default function LoginPage() {
             className="font-mono text-[10px] uppercase tracking-[0.4em]"
             style={{ color: "var(--color-sienna, #d84315)" }}
           >
-            Step {step === "credentials" ? "01" : "02"} / 02
+            Step {STEP_LABEL[step]} / 03
           </div>
           <h1
             className="font-black text-5xl tracking-[-0.04em] mt-3 leading-[0.95]"
@@ -99,10 +236,7 @@ export default function LoginPage() {
           </h1>
         </div>
 
-        <div
-          className="relative z-10 max-w-xs"
-          style={{ color: "#fff8e1" }}
-        >
+        <div className="relative z-10 max-w-xs" style={{ color: "#fff8e1" }}>
           <p className="text-sm leading-relaxed opacity-90">
             Manage portfolio content from one place, control access like a boss.
           </p>
@@ -114,208 +248,114 @@ export default function LoginPage() {
 
       <main className="flex-1 flex items-center justify-center p-6 lg:p-12">
         <div className="w-full max-w-md">
-          <div className="mb-8 lg:hidden">
-            <div
-              className="font-mono text-[10px] uppercase tracking-[0.4em] inline-block px-3 py-1 rounded-full"
-              style={{
-                background: "var(--color-ink, #2b1d1a)",
-                color: "var(--color-paper, #f7f1e3)",
-              }}
-            >
-              Step {step === "credentials" ? "01" : "02"} / 02
-            </div>
-            <h1
-              className="font-black text-3xl tracking-[-0.04em] mt-4 leading-[0.95]"
-              style={{ color: "var(--color-ink, #2b1d1a)" }}
-            >
-              Portfolio <span style={{ color: "var(--color-sienna, #c84a23)" }}>Admin</span>
-            </h1>
-          </div>
-
           <div className="mb-8">
             <h2
               className="font-sans font-bold text-2xl tracking-[-0.02em] leading-tight"
               style={{ color: "var(--color-ink, #2b1d1a)" }}
             >
-              {step === "credentials" ? "Welcome back." : "Check your email."}
+              {heading.title}
             </h2>
-            <p
-              className="mt-2 text-sm"
-              style={{ color: "var(--color-ink-soft, #6b5b54)" }}
-            >
-              {step === "credentials"
-                ? "Enter your credentials to receive a verification code."
-                : `A 6-digit code was sent to ${email}`}
+            <p className="mt-2 text-sm" style={{ color: "var(--color-ink-soft, #6b5b54)" }}>
+              {heading.subtitle(email)}
             </p>
           </div>
 
-          {step === "credentials" ? (
-            <form onSubmit={handleCredentials} className="flex flex-col gap-5">
-              <div>
-                <label
-                  className="block font-mono text-[10px] uppercase tracking-[0.25em] mb-2"
-                  style={{ color: "var(--color-ink-soft, #6b5b54)" }}
-                >
-                  Username
-                </label>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full bg-transparent border-0 border-b-2 py-3 text-base focus:outline-none transition-colors"
-                  style={{
-                    borderColor: "var(--color-ink, #2b1d1a)",
-                    color: "var(--color-ink, #2b1d1a)",
-                  }}
-                  placeholder="admin"
-                  autoFocus
-                />
-              </div>
+          {step === "credentials" && (
+            <CredentialsStep
+              username={username}
+              setUsername={setUsername}
+              password={password}
+              setPassword={setPassword}
+              showPassword={showPassword}
+              setShowPassword={setShowPassword}
+              loading={loading}
+              error={error}
+              honeypot={honeypot}
+              setHoneypot={setHoneypot}
+              onSubmit={handleCredentials}
+              onForgot={() => {
+                setStep("forgot");
+                setError("");
+                setInfo("");
+              }}
+            />
+          )}
 
-              <div>
-                <label
-                  className="block font-mono text-[10px] uppercase tracking-[0.25em] mb-2"
-                  style={{ color: "var(--color-ink-soft, #6b5b54)" }}
-                >
-                  Password
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-transparent border-0 border-b-2 py-3 pr-10 text-base focus:outline-none transition-colors"
-                    style={{
-                      borderColor: "var(--color-ink, #2b1d1a)",
-                      color: "var(--color-ink, #2b1d1a)",
-                    }}
-                    placeholder="••••••••"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 p-2 transition-opacity hover:opacity-70"
-                    style={{ color: "var(--color-ink, #2b1d1a)" }}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                  >
-                    {showPassword ? <EyeOffIcon /> : <EyeIcon />}
-                  </button>
-                </div>
-              </div>
+          {step === "otp" && (
+            <OtpStep
+              otp={otp}
+              setOtp={setOtp}
+              mustChange={mustChange}
+              loading={loading}
+              error={error}
+              honeypot={honeypot}
+              setHoneypot={setHoneypot}
+              onSubmit={handleOtp}
+              onBack={() => {
+                setStep("credentials");
+                setOtp("");
+                setError("");
+              }}
+            />
+          )}
 
-              {error && (
-                <div
-                  className="text-xs font-mono py-2 px-3 border-l-2"
-                  style={{
-                    color: "var(--color-sienna, #c84a23)",
-                    borderColor: "var(--color-sienna, #c84a23)",
-                    background: "rgba(200, 74, 35, 0.06)",
-                  }}
-                >
-                  {error}
-                </div>
-              )}
+          {step === "change-password" && (
+            <ChangePasswordStep
+              newPassword={newPassword}
+              setNewPassword={setNewPassword}
+              confirmPassword={confirmPassword}
+              setConfirmPassword={setConfirmPassword}
+              showNew={showNew}
+              setShowNew={setShowNew}
+              loading={loading}
+              error={error}
+              honeypot={honeypot}
+              setHoneypot={setHoneypot}
+              onSubmit={handleChangePassword}
+            />
+          )}
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="mt-4 group flex items-center justify-between w-full font-sans font-bold text-sm uppercase tracking-[0.2em] py-4 px-6 rounded-full transition-all disabled:opacity-50"
-                style={{
-                  background: "var(--color-ink, #2b1d1a)",
-                  color: "var(--color-paper, #f7f1e3)",
-                }}
-              >
-                <span>{loading ? "Sending code..." : "Continue"}</span>
-                <span className="transition-transform group-hover:translate-x-1">&rarr;</span>
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleOtp} className="flex flex-col gap-5">
-              <div>
-                <label
-                  className="block font-mono text-[10px] uppercase tracking-[0.25em] mb-2"
-                  style={{ color: "var(--color-ink-soft, #6b5b54)" }}
-                >
-                  One-Time Password
-                </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]{6}"
-                  maxLength={6}
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                  className="w-full bg-transparent border-0 border-b-2 py-3 text-2xl font-mono focus:outline-none transition-colors"
-                  style={{
-                    borderColor: "var(--color-ink, #2b1d1a)",
-                    color: "var(--color-ink, #2b1d1a)",
-                    letterSpacing: "0.4em",
-                  }}
-                  placeholder="000000"
-                  autoFocus
-                />
-              </div>
+          {step === "forgot" && (
+            <ForgotStep
+              email={resetEmail}
+              setEmail={setResetEmail}
+              loading={loading}
+              error={error}
+              info={info}
+              honeypot={honeypot}
+              setHoneypot={setHoneypot}
+              onSubmit={handleForgot}
+              onBack={() => {
+                setStep("credentials");
+                setError("");
+                setInfo("");
+              }}
+            />
+          )}
 
-              {error && (
-                <div
-                  className="text-xs font-mono py-2 px-3 border-l-2"
-                  style={{
-                    color: "var(--color-sienna, #c84a23)",
-                    borderColor: "var(--color-sienna, #c84a23)",
-                    background: "rgba(200, 74, 35, 0.06)",
-                  }}
-                >
-                  {error}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading || otp.length !== 6}
-                className="mt-4 group flex items-center justify-between w-full font-sans font-bold text-sm uppercase tracking-[0.2em] py-4 px-6 rounded-full transition-all disabled:opacity-50"
-                style={{
-                  background: "var(--color-ink, #2b1d1a)",
-                  color: "var(--color-paper, #f7f1e3)",
-                }}
-              >
-                <span>{loading ? "Verifying..." : "Verify & Sign In"}</span>
-                <span className="transition-transform group-hover:translate-x-1">&rarr;</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setStep("credentials");
-                  setOtp("");
-                  setError("");
-                }}
-                className="text-xs font-mono uppercase tracking-[0.2em] self-start"
-                style={{ color: "var(--color-ink-soft, #6b5b54)" }}
-              >
-                &larr; Back
-              </button>
-            </form>
+          {step === "reset" && (
+            <ResetStep
+              token={resetToken}
+              setToken={setResetToken}
+              newPassword={newPassword}
+              setNewPassword={setNewPassword}
+              showNew={showNew}
+              setShowNew={setShowNew}
+              loading={loading}
+              error={error}
+              info={info}
+              honeypot={honeypot}
+              setHoneypot={setHoneypot}
+              onSubmit={handleReset}
+              onBack={() => {
+                setStep("credentials");
+                setError("");
+                setInfo("");
+              }}
+            />
           )}
         </div>
       </main>
     </div>
-  );
-}
-
-function EyeIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-      <circle cx="12" cy="12" r="3" />
-    </svg>
-  );
-}
-
-function EyeOffIcon() {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-      <line x1="1" y1="1" x2="23" y2="23" />
-    </svg>
   );
 }

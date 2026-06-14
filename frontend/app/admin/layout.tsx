@@ -48,6 +48,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           >
             Dashboard
           </a>
+          <a
+            href={`${ADMIN_ROUTE}/settings`}
+            className="font-mono text-xs uppercase tracking-wider transition-colors"
+            style={{ color: "var(--color-ink-soft)" }}
+          >
+            Settings
+          </a>
           <button
             onClick={() => { clearToken(); router.push(`${ADMIN_ROUTE}/login`); }}
             className="font-mono text-xs uppercase tracking-wider transition-colors"
