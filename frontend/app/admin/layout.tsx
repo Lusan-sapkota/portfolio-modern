@@ -4,13 +4,15 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { getToken, clearToken } from "@/app/lib/admin-api";
 
+const ADMIN_ROUTE = process.env.NEXT_PUBLIC_ADMIN_ROUTE || "/configure-deafult-here";
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isLogin = pathname === "/admin/login";
 
   useEffect(() => {
     if (!isLogin && !getToken()) {
-      window.location.href = "/admin/login";
+      window.location.href = `${ADMIN_ROUTE}/login`;
     }
   }, [isLogin]);
 
@@ -38,11 +40,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </h1>
         </div>
         <nav className="flex items-center gap-6 text-sm">
-          <a href="/admin" className="text-zinc-400 hover:text-white transition-colors font-mono text-xs uppercase tracking-wider">
+          <a href={ADMIN_ROUTE} className="text-zinc-400 hover:text-white transition-colors font-mono text-xs uppercase tracking-wider">
             Dashboard
           </a>
           <button
-            onClick={() => { clearToken(); window.location.href = "/admin/login"; }}
+            onClick={() => { clearToken(); window.location.href = `${ADMIN_ROUTE}/login`; }}
             className="text-zinc-600 hover:text-red-400 transition-colors font-mono text-xs uppercase tracking-wider"
           >
             Logout

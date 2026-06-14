@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { login } from "@/app/lib/admin-api";
 
+const ADMIN_ROUTE = process.env.NEXT_PUBLIC_ADMIN_ROUTE || "/configure-deafult-here";
+
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -16,7 +18,7 @@ export default function LoginPage() {
     try {
       const token = await login(username, password);
       if (token) {
-        window.location.href = "/admin";
+        window.location.href = ADMIN_ROUTE;
       } else {
         setError("Invalid credentials");
       }
