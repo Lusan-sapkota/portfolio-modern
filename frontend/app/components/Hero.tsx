@@ -5,10 +5,6 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { swipeChild, swipeGroup, swipeSection } from "../lib/motion";
 
-/**
- * Hero — clean magazine layout, fully responsive
- * 100vh · watermark behind · toggleable portrait · swipe-in on view.
- */
 export function Hero() {
   const ref = useRef<HTMLDivElement>(null);
   const waterRef = useRef<HTMLDivElement>(null);

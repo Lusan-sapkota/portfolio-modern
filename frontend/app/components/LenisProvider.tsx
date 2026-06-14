@@ -5,12 +5,6 @@ import { createContext, ReactNode, useContext, useEffect, useState } from "react
 
 const LenisContext = createContext<Lenis | null>(null);
 
-/**
- * LenisProvider sets up a global smooth scroll instance and intercepts
- * anchor clicks to scroll to the target. Book pages (positioned inside
- * a sticky stage) need a calculated scroll position based on the page
- * index, so we resolve those via data-page-index.
- */
 export function LenisProvider({ children }: { children: ReactNode }) {
   const [lenis, setLenis] = useState<Lenis | null>(null);
 
