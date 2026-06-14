@@ -9,7 +9,7 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise RuntimeError(
         "DATABASE_URL is not set. Copy .env.example to .env and provide a Postgres URL "
-        "(free tier: https://neon.tech or https://supabase.com)."
+        "(free tier: https://neon.tech or https://supabase.com) can be used for development or spin up a local instance."
     )
 
 engine = create_engine(

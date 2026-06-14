@@ -93,6 +93,7 @@ def authenticate(username: str, password: str) -> User | None:
             user.password_hash = hash_password(password)
         user.last_login_at = datetime.now(timezone.utc)
         s.commit()
+        _ = user.must_change_password
         return user
     finally:
         s.close()
