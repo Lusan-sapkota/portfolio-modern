@@ -1,31 +1,29 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { getToken, clearToken } from "@/app/lib/admin-api";
 
 const ADMIN_ROUTE = process.env.NEXT_PUBLIC_ADMIN_ROUTE || "/configure-deafult-here";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const isLogin = pathname === "/admin/login";
+  const [authed, setAuthed] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (!isLogin && !getToken()) {
-      window.location.href = `${ADMIN_ROUTE}/login`;
+    const hasToken = !!getToken();
+    setAuthed(hasToken);
+    if (!hasToken && !isLogin) {
+      router.replace(`${ADMIN_ROUTE}/login`);
     }
-  }, [isLogin]);
+  }, [isLogin, router]);
 
-  if (isLogin) {
+  if (authed === null) return null;
+
+  if (isLogin || !authed) {
     return <>{children}</>;
-  }
-
-  if (!getToken()) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-zinc-400">
-        <p>Redirecting to login...</p>
-      </div>
-    );
   }
 
   return (
@@ -44,7 +42,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             Dashboard
           </a>
           <button
-            onClick={() => { clearToken(); window.location.href = `${ADMIN_ROUTE}/login`; }}
+            onClick={() => { clearToken(); router.push(`${ADMIN_ROUTE}/login`); }}
             className="text-zinc-600 hover:text-red-400 transition-colors font-mono text-xs uppercase tracking-wider"
           >
             Logout
