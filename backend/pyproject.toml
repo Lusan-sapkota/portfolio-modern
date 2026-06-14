@@ -1,10 +1,13 @@
 [project]
 name = "backend"
 version = "0.1.0"
-description = "Add your description here"
+description = "Portfolio backend built on Lcore + PostgreSQL"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.12"
 dependencies = [
     "lcore>=0.0.4",
     "requests>=2.31.0",
+    "sqlalchemy>=2.0.30",
+    "psycopg2-binary>=2.9.9",
+    "alembic>=1.13.0",
 ]

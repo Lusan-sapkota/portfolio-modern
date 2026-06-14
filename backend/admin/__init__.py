@@ -7,7 +7,6 @@ from .auth import (
     ADMIN_EMAIL,
 )
 from .dashboard import dashboard
-from .data import data
 from .projects import projects
 from .categories import categories
 from .content import content
@@ -64,4 +63,3 @@ admin.mount("/api/categories", categories)
 admin.mount("/api/content", content)
 admin.mount("/api/community", community)
 admin.mount("/api/wiki", wiki)
-admin.mount("/api/data", data)

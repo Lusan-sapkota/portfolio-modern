@@ -31,5 +31,14 @@ def list_platforms():
     }
 
 
+@app.route("/health")
+def health():
+    from db import engine
+    from sqlalchemy import text
+    with engine.connect() as conn:
+        conn.execute(text("SELECT 1"))
+    return {"status": "ok", "db": "connected"}
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)

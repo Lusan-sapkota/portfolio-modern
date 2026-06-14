@@ -2,17 +2,83 @@
 
 Built with [Lcore](https://lcore.lusansapkota.com.np) (v0.0.4+), a lightweight Python web framework.
 
+## Stack
+
+- **[Lcore](https://lcore.lusansapkota.com.np)** — WSGI framework, zero-dep
+- **PostgreSQL** — production DB (no SQLite, even in dev)
+- **SQLAlchemy 2.0** — sync ORM (the Python equivalent of Prisma)
+- **Alembic** — versioned migrations
+- **psycopg2** — Postgres driver
+- **python-dotenv** — env management
+- **smtplib** — OTP email delivery
+- **requests** — GitHub API proxy
+
+## Database Setup
+
+**No SQLite, even in development.** Use a real Postgres server.
+
+The project ships with two env templates:
+- **`.env.development`** — for Neon.tech free tier (or any cloud Postgres)
+- **`.env.production`** — for self-hosted Postgres on your VPS
+
+```bash
+# 1. Create a free Neon project at https://neon.tech
+# 2. Copy the connection string from Neon dashboard
+# 3. Set DATABASE_URL in .env
+make dev                              # copies .env.development to .env
+# Edit .env and paste your Neon connection string
+
+# 4. Run migrations
+make upgrade                          # applies all pending migrations
+
+# 5. Start the server
+make run                              # starts on :8080
+```
+
+The server reads `.env` on startup and creates tables if they don't exist.
+
+## Environment Workflow
+
+| Stage | Database | Source |
+|---|---|---|
+| Local dev | Neon.tech free tier | `.env.development` → `.env` |
+| Production | Self-hosted Postgres on VPS | `.env.production` → `.env` |
+
+The `DATABASE_URL` format is identical for both, so the same code works everywhere. Just swap the connection string.
+
+### Switching environments
+
+```bash
+# Use Neon (dev)
+cp .env.development .env
+
+# Use self-hosted (prod)
+cp .env.production .env
+```
+
 ## Running
 
 ```bash
 cd backend
-pip install -r requirements.tzt
+pip install -r requirements.tzt  # or: uv sync
 python main.py
 ```
 
 Server starts on `http://0.0.0.0:8080`.
 
+## Migrations
+
+```bash
+# After changing db/models.py
+alembic revision --autogenerate -m "describe change"
+alembic upgrade head
+
+# Rollback one step
+alembic downgrade -1
+```
+
 ## Architecture
+
 
 ```
 main.py              — root app, mounts platform sub-apps and admin
@@ -22,15 +88,22 @@ platforms/
   store.py           — store redirect
 admin/
   __init__.py        — admin app, auth guard, mounts all sub-apps
-  store.py           — in-memory data store (mirrors all reference models)
-  auth.py            — JWT-like token auth (HMAC-SHA256)
-  dashboard.py       — stats endpoint
-  projects.py        — projects + categories CRUD + GitHub refresh
-  content.py         — skills, experience, education, testimonials, social, personal, seo CRUD
+  auth.py            — HMAC token auth + OTP via SMTP
+  db_helper.py       — SQLAlchemy session context manager
+  dashboard.py       — stats endpoint (Postgres queries)
+  projects.py        — projects + GitHub refresh (Postgres CRUD)
+  categories.py      — categories CRUD (Postgres)
+  content.py         — skills, experience, education, testimonials, social, personal, seo, donations CRUD
   wiki.py            — wiki articles + categories CRUD
   community.py       — contacts, newsletter CRUD
-  data.py            — full data export/import (zip of JSON)
   helpers.py         — response helpers (created, not_found, bad_request, etc.)
+db/
+  session.py         — SQLAlchemy engine, session factory
+  models.py          — ORM models (projects, categories, skills, ...)
+migrations/          — Alembic migrations
+  versions/0001_initial.py
+bootstrap.py         — env loader, DB readiness check
+alembic.ini
 ```
 
 ## Platform Routes
