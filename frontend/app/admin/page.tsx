@@ -3,6 +3,11 @@
 import { useEffect, useState } from "react";
 import { api, type DashboardStats } from "@/app/lib/admin-api";
 
+const cardStyle: React.CSSProperties = {
+  background: "#fffdf5",
+  borderColor: "rgba(176, 125, 91, 0.2)",
+};
+
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [error, setError] = useState("");
@@ -17,8 +22,10 @@ export default function DashboardPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <p className="text-red-400 font-mono text-sm mb-4">{error}</p>
-          <p className="text-zinc-600 text-xs">Make sure the backend is running on port 8080</p>
+          <p className="font-mono text-sm mb-4" style={{ color: "var(--color-sienna)" }}>{error}</p>
+          <p className="text-xs font-mono" style={{ color: "var(--color-ink-soft)" }}>
+            Make sure the backend is running on port 8080
+          </p>
         </div>
       </div>
     );
@@ -27,7 +34,7 @@ export default function DashboardPage() {
   if (!stats) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-zinc-500 font-mono text-sm">Loading dashboard...</p>
+        <p className="font-mono text-sm" style={{ color: "var(--color-ink-soft)" }}>Loading dashboard...</p>
       </div>
     );
   }
@@ -56,19 +63,19 @@ export default function DashboardPage() {
   return (
     <div className="px-6 py-8 max-w-7xl mx-auto">
       <div className="mb-8">
-        <h2 className="font-mono text-xs uppercase tracking-[0.3em] text-zinc-500 mb-1">
+        <h2 className="font-mono text-xs uppercase tracking-[0.3em] mb-1" style={{ color: "var(--color-sienna)" }}>
           Overview
         </h2>
-        <p className="text-zinc-400 text-sm">Content statistics at a glance</p>
+        <p className="text-sm" style={{ color: "var(--color-ink-soft)" }}>Content statistics at a glance</p>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-10">
         {cards.map((c) => (
-          <div key={c.label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 hover:border-zinc-700 transition-colors">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-zinc-600 mb-2">
+          <div key={c.label} className="border rounded-xl p-4 transition-colors" style={cardStyle}>
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: "var(--color-ink-soft)" }}>
               {c.label}
             </p>
-            <p className="text-2xl font-semibold text-zinc-200 tabular-nums">
+            <p className="text-2xl font-semibold tabular-nums" style={{ color: "var(--color-ink)" }}>
               {c.value}
             </p>
           </div>
@@ -76,17 +83,17 @@ export default function DashboardPage() {
       </div>
 
       <div className="mb-6">
-        <h2 className="font-mono text-xs uppercase tracking-[0.3em] text-zinc-500 mb-1">
+        <h2 className="font-mono text-xs uppercase tracking-[0.3em] mb-1" style={{ color: "var(--color-sienna)" }}>
           Donations
         </h2>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {totals.map((t) => (
-          <div key={t.label} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-zinc-600 mb-2">
+          <div key={t.label} className="border rounded-xl p-4" style={cardStyle}>
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] mb-2" style={{ color: "var(--color-ink-soft)" }}>
               {t.label}
             </p>
-            <p className="text-2xl font-semibold text-zinc-200 tabular-nums">
+            <p className="text-2xl font-semibold tabular-nums" style={{ color: "var(--color-ink)" }}>
               {t.value}
             </p>
           </div>

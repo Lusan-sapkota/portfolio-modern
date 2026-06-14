@@ -27,23 +27,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col">
-      <header className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-sm sticky top-0 z-50">
+    <div className="min-h-screen flex flex-col" style={{ background: "#fffdf5", color: "var(--color-ink)" }}>
+      <header
+        className="flex items-center justify-between px-6 py-4 sticky top-0 z-50 backdrop-blur-sm"
+        style={{ background: "rgba(255, 253, 245, 0.85)", borderBottom: "1px solid rgba(176, 125, 91, 0.2)" }}
+      >
         <div className="flex items-center gap-4">
-          <a href="/" className="text-zinc-500 hover:text-zinc-300 text-sm font-mono transition-colors">
+          <a href="/" className="text-sm font-mono transition-colors" style={{ color: "var(--color-ink-soft)" }}>
             &larr; Site
           </a>
-          <h1 className="font-mono text-xs uppercase tracking-[0.3em] text-zinc-500">
+          <h1 className="font-mono text-xs uppercase tracking-[0.3em]" style={{ color: "var(--color-ink-soft)" }}>
             Portfolio Admin
           </h1>
         </div>
         <nav className="flex items-center gap-6 text-sm">
-          <a href={ADMIN_ROUTE} className="text-zinc-400 hover:text-white transition-colors font-mono text-xs uppercase tracking-wider">
+          <a
+            href={ADMIN_ROUTE}
+            className="font-mono text-xs uppercase tracking-wider transition-colors"
+            style={{ color: "var(--color-ink-soft)" }}
+          >
             Dashboard
           </a>
           <button
             onClick={() => { clearToken(); router.push(`${ADMIN_ROUTE}/login`); }}
-            className="text-zinc-600 hover:text-red-400 transition-colors font-mono text-xs uppercase tracking-wider"
+            className="font-mono text-xs uppercase tracking-wider transition-colors"
+            style={{ color: "var(--color-sienna)" }}
           >
             Logout
           </button>

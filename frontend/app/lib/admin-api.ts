@@ -28,7 +28,23 @@ export async function login(username: string, password: string) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password }),
   });
-  if (!res.ok) return null;
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Login failed" }));
+    throw new Error(err.error || "Login failed");
+  }
+  return res.json();
+}
+
+export async function verifyOtp(otp: string) {
+  const res = await fetch(`${API}/verify-otp`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ otp }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Invalid OTP" }));
+    throw new Error(err.error || "Invalid OTP");
+  }
   const data = await res.json();
   setToken(data.token);
   return data.token;
