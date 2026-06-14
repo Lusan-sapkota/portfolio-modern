@@ -49,7 +49,7 @@ export function PasswordInput({
       <button
         type="button"
         onClick={onToggle}
-        className="absolute right-0 top-1/2 -translate-y-1/2 p-2 transition-opacity hover:opacity-70"
+        className="absolute right-0 top-1/2 -translate-y-1/2 p-2 transition-opacity hover:opacity-70 cursor-pointer"
         style={{ color: "var(--color-ink, #2b1d1a)" }}
         aria-label={show ? "Hide password" : "Show password"}
       >
@@ -133,7 +133,7 @@ export function SubmitButton({ loading, text }: { loading: boolean; text: string
     <button
       type="submit"
       disabled={loading}
-      className="mt-4 group flex items-center justify-between w-full font-sans font-bold text-sm uppercase tracking-[0.2em] py-4 px-6 rounded-full transition-all disabled:opacity-50"
+      className="mt-4 group flex items-center justify-between w-full font-sans font-bold text-sm uppercase tracking-[0.2em] py-4 px-6 rounded-full transition-all disabled:opacity-50 cursor-pointer"
       style={{ background: "var(--color-ink, #2b1d1a)", color: "var(--color-paper, #f7f1e3)" }}
     >
       <span>{loading ? "Working..." : text}</span>
@@ -147,7 +147,7 @@ export function BackLink({ onClick, children }: { onClick: () => void; children:
     <button
       type="button"
       onClick={onClick}
-      className="text-xs font-mono uppercase tracking-[0.2em] self-start"
+      className="text-xs font-mono uppercase tracking-[0.2em] self-start cursor-pointer"
       style={{ color: "var(--color-ink-soft, #6b5b54)" }}
     >
       {children}

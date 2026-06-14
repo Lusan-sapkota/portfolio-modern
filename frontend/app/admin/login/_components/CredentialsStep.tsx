@@ -55,7 +55,7 @@ export function CredentialsStep({
       <button
         type="button"
         onClick={onForgot}
-        className="text-xs font-mono uppercase tracking-[0.2em] self-end"
+        className="text-xs font-mono uppercase tracking-[0.2em] self-end cursor-pointer"
         style={{ color: "var(--color-ink-soft, #6b5b54)" }}
       >
         Forgot password?
