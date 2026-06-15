@@ -118,6 +118,29 @@ def change_password(username: str, new_password: str) -> bool:
         s.close()
 
 
+def change_username(current_username: str, new_username: str, current_password: str) -> tuple[bool, str]:
+    new_username = new_username.strip()
+    if len(new_username) < 3 or len(new_username) > 100:
+        return False, "Username must be 3-100 characters"
+    if not all(c.isalnum() or c in ("_", "-", ".") for c in new_username):
+        return False, "Username may only contain letters, numbers, _, -, ."
+    s = SessionLocal()
+    try:
+        user = s.query(User).filter_by(username=current_username).first()
+        if not user:
+            return False, "User not found"
+        if not check_password(current_password, user.password_hash):
+            return False, "Current password incorrect"
+        if s.query(User).filter(User.username == new_username, User.id != user.id).first():
+            return False, "Username already taken"
+        user.username = new_username
+        user.tokens_valid_after = datetime.now(timezone.utc)
+        s.commit()
+        return True, new_username
+    finally:
+        s.close()
+
+
 def revoke_all_sessions(username: str) -> None:
     s = SessionLocal()
     try:

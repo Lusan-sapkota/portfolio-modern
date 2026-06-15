@@ -2,6 +2,7 @@ type ErrorContext =
   | "login"
   | "otp"
   | "changePassword"
+  | "changeUsername"
   | "forgot"
   | "reset"
   | "logout"
@@ -23,6 +24,11 @@ const MESSAGES: Record<ErrorContext, string[]> = {
     "That didn't work. Maybe try a different password?",
     "The password vault is being moody.",
     "Server's having second thoughts on that password.",
+  ],
+  changeUsername: [
+    "Couldn't update that username. Maybe taken or password is off?",
+    "The username registry is being picky. Double-check and retry.",
+    "That username swap didn't go through. Try again in a moment.",
   ],
   forgot: [
     "Couldn't reach the mailroom. Try again in a sec?",

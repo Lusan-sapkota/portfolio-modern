@@ -71,6 +71,27 @@ export async function changePassword(
   return res.json();
 }
 
+export async function changeUsername(
+  newUsername: string,
+  currentPassword: string,
+  website = ""
+) {
+  const res = await fetch(`${API}/change-username`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({
+      new_username: newUsername,
+      current_password: currentPassword,
+      website,
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Username change failed" }));
+    throw new Error(err.error || "Username change failed");
+  }
+  return res.json();
+}
+
 export async function forgotPassword(email: string, website = "") {
   await fetch(`${API}/forgot-password`, {
     method: "POST",
@@ -120,7 +141,7 @@ async function authFetch(path: string, options: RequestInit = {}) {
 }
 
 export const api = {
-  get: (path: string) => authFetch(path),
+  get: (path: string, init?: RequestInit) => authFetch(path, init),
   post: (path: string, body?: unknown) => authFetch(path, { method: "POST", body: body ? JSON.stringify(body) : undefined }),
   put: (path: string, body?: unknown) => authFetch(path, { method: "PUT", body: body ? JSON.stringify(body) : undefined }),
   delete: (path: string) => authFetch(path, { method: "DELETE" }),
@@ -142,4 +163,30 @@ export type DashboardStats = {
   donations: number;
   total_donations_usd: number;
   total_donations_npr: number;
+};
+
+export type SecurityLog = {
+  id: number;
+  created_at: string | null;
+  action: string;
+  status: string;
+  username: string | null;
+  ip: string | null;
+  user_agent: string | null;
+  detail: string | null;
+};
+
+export type SecurityLogResponse = {
+  logs: SecurityLog[];
+  total: number;
+  limit: number;
+  offset: number;
+  actions: string[];
+};
+
+export type SecurityLogStats = {
+  total_events: number;
+  total_logins: number;
+  failed_logins: number;
+  recent_logins: SecurityLog[];
 };

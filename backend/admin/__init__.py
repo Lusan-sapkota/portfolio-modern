@@ -6,6 +6,7 @@ from .auth import (
     verify_otp,
     authenticate,
     change_password,
+    change_username,
     request_password_reset,
     reset_password_with_token,
     revoke_all_sessions,
@@ -17,6 +18,7 @@ from .categories import categories
 from .content import content
 from .community import community
 from .wiki import wiki
+from .security_logs import security_logs
 from .helpers import unauthorized, bad_request
 from .rate_limit import check as rate_check, client_key
 from .audit import log_action
@@ -38,6 +40,7 @@ RATE_LIMITS = {
     "/forgot-password": (3, 300),
     "/reset-password": (5, 60),
     "/change-password": (5, 60),
+    "/change-username": (5, 60),
 }
 
 USERNAME_LIMITS = {"/login": (10, 60), "/forgot-password": (3, 300)}
@@ -189,6 +192,35 @@ def change_password_endpoint():
     return {"message": "Password changed"}
 
 
+@admin.route("/change-username", method="POST")
+def change_username_endpoint():
+    auth = request.get_header("Authorization", "")
+    if not auth.startswith("Bearer "):
+        return unauthorized()
+    username = verify_token(auth[7:])
+    if not username:
+        return unauthorized()
+    data = request.json or {}
+    if not _honeypot_ok(data):
+        log_action(request, "change-username", username=username, status="rejected", detail="honeypot")
+        return bad_request("Invalid request")
+    new_username = str(data.get("new_username", ""))
+    current_pw = str(data.get("current_password", ""))
+    ok, result = change_username(username, new_username, current_pw)
+    if not ok:
+        if "password" in result.lower():
+            log_action(request, "change-username", username=username, status="invalid_current")
+            return unauthorized(result)
+        if "taken" in result.lower():
+            log_action(request, "change-username", username=username, status="conflict")
+            response.status = 409
+            return {"error": result}
+        log_action(request, "change-username", username=username, status="invalid")
+        return bad_request(result)
+    log_action(request, "change-username", username=username, status="success", detail=f"to:{result}")
+    return {"message": "Username changed", "username": result}
+
+
 @admin.route("/forgot-password", method="POST")
 def forgot_password_endpoint():
     data = request.json or {}
@@ -241,3 +273,4 @@ admin.mount("/api/categories", categories)
 admin.mount("/api/content", content)
 admin.mount("/api/community", community)
 admin.mount("/api/wiki", wiki)
+admin.mount("/api/security-logs", security_logs)

@@ -1,9 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api, type DashboardStats } from "@/app/lib/admin-api";
-
-const ADMIN_ROUTE = process.env.NEXT_PUBLIC_ADMIN_ROUTE || "/configure-deafult-here";
 
 const INK = "#1a1a1a";
 const PAPER = "#fffdf5";
@@ -12,15 +10,61 @@ const BORDER = "rgba(26, 26, 26, 0.15)";
 
 type Stat = { label: string; value: number | string; tone?: "ink" | "paper" | "sienna" };
 
+const ZERO_STATS: DashboardStats = {
+  projects: 0,
+  categories: 0,
+  skills: 0,
+  experiences: 0,
+  education: 0,
+  testimonials: 0,
+  social_links: 0,
+  contacts: 0,
+  newsletter_active: 0,
+  wiki_articles: 0,
+  wiki_categories: 0,
+  donation_projects: 0,
+  donations: 0,
+  total_donations_usd: 0,
+  total_donations_npr: 0,
+};
+
+const REQUEST_TIMEOUT_MS = 10_000;
+
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const load = useCallback(async () => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+    setLoading(true);
+    setError("");
+    try {
+      const data = (await api.get("/api/dashboard/", { signal: controller.signal })) as DashboardStats;
+      if (controller.signal.aborted) return;
+      setStats({ ...ZERO_STATS, ...data });
+      setUpdatedAt(new Date());
+    } catch (e) {
+      if (controller.signal.aborted) return;
+      const msg = e instanceof Error ? e.message : "Failed to load";
+      if (msg.toLowerCase().includes("aborted")) return;
+      setError(msg);
+    } finally {
+      window.clearTimeout(timeoutId);
+      if (!controller.signal.aborted) setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    api.get("/api/dashboard/")
-      .then(setStats)
-      .catch((e) => setError(e.message));
-  }, []);
+    load();
+    return () => abortRef.current?.abort();
+  }, [load]);
 
   if (error) {
     return (
@@ -35,25 +79,27 @@ export default function DashboardPage() {
           <p className="text-2xl font-black tracking-[-0.02em] mb-2" style={{ color: INK }}>
             {error}
           </p>
-          <p className="text-xs font-mono mt-3" style={{ color: "#6b5b54" }}>
+          <p className="text-xs font-mono mt-3 mb-6" style={{ color: "#6b5b54" }}>
             Make sure the backend is running on port 8080
           </p>
+          <button
+            onClick={load}
+            className="font-mono text-[10px] uppercase tracking-[0.3em] py-3 px-6 rounded-full cursor-pointer transition-transform hover:-translate-y-0.5"
+            style={{ background: INK, color: PAPER, boxShadow: `3px 3px 0 ${SIENNA}` }}
+          >
+            Retry &rarr;
+          </button>
         </div>
       </div>
     );
   }
 
+  if (loading && !stats) {
+    return <LoadingSkeleton />;
+  }
+
   if (!stats) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <p
-          className="font-mono text-[10px] uppercase tracking-[0.4em]"
-          style={{ color: "#6b5b54" }}
-        >
-          Loading overview...
-        </p>
-      </div>
-    );
+    return <EmptyState onRefresh={load} />;
   }
 
   const contentStats: Stat[] = [
@@ -194,15 +240,89 @@ export default function DashboardPage() {
           style={{ color: "#6b5b54" }}
         >
           Lusan Sapkota &mdash; {new Date().getFullYear()}
+          {updatedAt && (
+            <span className="ml-3" style={{ color: INK }}>
+              Updated {updatedAt.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })}
+            </span>
+          )}
         </p>
-        <a
-          href={ADMIN_ROUTE}
-          className="font-mono text-[10px] uppercase tracking-[0.3em] transition-opacity hover:opacity-70"
+        <button
+          onClick={load}
+          disabled={loading}
+          className="font-mono text-[10px] uppercase tracking-[0.3em] transition-opacity hover:opacity-70 disabled:opacity-50 cursor-pointer"
           style={{ color: SIENNA }}
         >
-          Refresh &rarr;
-        </a>
+          {loading ? "Refreshing..." : "Refresh \u2192"}
+        </button>
       </footer>
+    </div>
+  );
+}
+
+function LoadingSkeleton() {
+  return (
+    <div className="px-6 py-10 lg:px-12 lg:py-14 max-w-[1400px] mx-auto">
+      <header className="mb-10 pb-8" style={{ borderBottom: `2px solid ${INK}` }}>
+        <div className="flex items-center gap-3 mb-3">
+          <span
+            className="inline-block w-8 h-8 rounded-full"
+            style={{ background: SIENNA, animation: "pulse 1.4s ease-in-out infinite" }}
+          />
+          <div className="h-3 w-24 rounded" style={{ background: "rgba(26,26,26,0.1)", animation: "pulse 1.4s ease-in-out infinite" }} />
+        </div>
+        <div className="h-14 w-72 rounded" style={{ background: "rgba(26,26,26,0.1)", animation: "pulse 1.4s ease-in-out infinite" }} />
+      </header>
+
+      <div className="mb-10">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="h-3 w-8 rounded" style={{ background: "rgba(26,26,26,0.1)", animation: "pulse 1.4s ease-in-out infinite" }} />
+          <div className="h-6 w-32 rounded" style={{ background: "rgba(26,26,26,0.15)", animation: "pulse 1.4s ease-in-out infinite" }} />
+          <div className="flex-1 h-[2px]" style={{ background: INK }} />
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {Array.from({ length: 9 }).map((_, i) => (
+            <div
+              key={i}
+              className="rounded-2xl p-5 lg:p-6 h-28"
+              style={{ background: PAPER, border: `2px solid ${INK}`, boxShadow: `4px 4px 0 ${INK}` }}
+            >
+              <div className="h-3 w-20 rounded mb-3" style={{ background: "rgba(26,26,26,0.1)", animation: "pulse 1.4s ease-in-out infinite" }} />
+              <div className="h-10 w-24 rounded" style={{ background: "rgba(26,26,26,0.15)", animation: "pulse 1.4s ease-in-out infinite" }} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EmptyState({ onRefresh }: { onRefresh: () => void }) {
+  return (
+    <div className="flex items-center justify-center min-h-[60vh] px-6">
+      <div className="text-center max-w-md">
+        <p
+          className="font-mono text-[10px] uppercase tracking-[0.4em] mb-3"
+          style={{ color: SIENNA }}
+        >
+          No Data
+        </p>
+        <h2
+          className="font-black text-3xl tracking-[-0.03em] leading-tight mb-3"
+          style={{ color: INK }}
+        >
+          Nothing to show yet
+        </h2>
+        <p className="text-sm mb-6" style={{ color: "#6b5b54" }}>
+          The dashboard came back empty. Add some content from the corresponding sections to see stats here.
+        </p>
+        <button
+          onClick={onRefresh}
+          className="font-mono text-[10px] uppercase tracking-[0.3em] py-3 px-6 rounded-full cursor-pointer transition-transform hover:-translate-y-0.5"
+          style={{ background: INK, color: PAPER, boxShadow: `3px 3px 0 ${SIENNA}` }}
+        >
+          Refresh \u2192
+        </button>
+      </div>
     </div>
   );
 }
