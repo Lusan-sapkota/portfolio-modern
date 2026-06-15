@@ -1,14 +1,19 @@
 "use client";
 
 import Lenis from "lenis";
+import { usePathname } from "next/navigation";
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 
 const LenisContext = createContext<Lenis | null>(null);
 
 export function LenisProvider({ children }: { children: ReactNode }) {
   const [lenis, setLenis] = useState<Lenis | null>(null);
+  const pathname = usePathname();
+  const adminRoute = process.env.NEXT_PUBLIC_ADMIN_ROUTE || "/configure-deafult-here";
+  const isAdmin = pathname?.startsWith(adminRoute);
 
   useEffect(() => {
+    if (isAdmin) return;
     const instance = new Lenis({
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -66,8 +71,9 @@ export function LenisProvider({ children }: { children: ReactNode }) {
       document.removeEventListener("click", handleClick);
       instance.destroy();
     };
-  }, []);
+  }, [isAdmin]);
 
+  if (isAdmin) return <>{children}</>;
   return <LenisContext.Provider value={lenis}>{children}</LenisContext.Provider>;
 }
 

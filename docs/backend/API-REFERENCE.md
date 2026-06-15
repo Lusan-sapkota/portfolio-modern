@@ -97,11 +97,18 @@ Article body: `title`, `slug`, `body` (markdown), `category_id`, `tags` (string 
 | Method | Path | Notes |
 |---|---|---|
 | `GET` | `{admin}/api/community/contacts` | List. Filters: `?spam=true&search=<q>` |
+| `GET` | `{admin}/api/community/contacts/stats` | `{total, spam, replied, unreplied}` — aggregate counts |
 | `POST` | `{admin}/api/community/contacts/submit` | Public — no auth, used by the contact form |
 | `GET` / `PUT` / `DELETE` | `{admin}/api/community/contacts/<id>` | Mark spam, read, delete |
+| `POST` | `{admin}/api/community/contacts/<id>/reply` | Sends an email from `contact@lusansapkota.com.np`. Body: `{body_html, body_text?, attachment?: {filename, content_base64}}`. The attachment is optional — when present, it is decoded from base64 and attached to the outgoing email. Marks `is_replied=true` on success |
 | `GET` | `{admin}/api/community/newsletter` | Filters: `?active=true&search=<q>` |
-| `POST` | `{admin}/api/community/newsletter/subscribe` | Public — no auth |
+| `POST` | `{admin}/api/community/newsletter/subscribe` | Public — no auth. Body: `{email, name?, interests?}` |
+| `POST` | `{admin}/api/community/newsletter/unsubscribe` | Public — no auth. Body: `{email}`. Returns `200 {message, email}` or `404` if the email is not in the list |
 | `PUT` / `DELETE` | `{admin}/api/community/newsletter/<id>` | Manage subscriber |
+| `GET` | `{admin}/api/community/newsletter/stats` | `{total, active, inactive, interests: [{tag, count}]}` — interest tag breakdown across all subscribers |
+| `POST` | `{admin}/api/community/newsletter/preview` | Body: `{subject, body_html, site_url?}`. Renders the body with a sample recipient and returns `{html, sample}` — no side effects |
+| `POST` | `{admin}/api/community/newsletter/send` | Body: `{subject, body_html, body_text?, recipient_filter, subscriber_ids?, interests?, include_inactive?, site_url?}`. Queues a background job and returns `{job_id, queued, filter, started_at}`. Filters: `all` / `active` / `by_ids` / `by_interests`. `body_html` may use `{name}` and `{unsubscribe_url}` placeholders |
+| `GET` | `{admin}/api/community/newsletter/send/status/<job_id>` | Returns `{id, status, total, sent, failed, started_at, finished_at, errors: [{id, email}]}` |
 
 ## Data export / import
 

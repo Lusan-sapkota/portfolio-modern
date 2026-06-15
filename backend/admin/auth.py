@@ -1,28 +1,19 @@
 import os
-import smtplib
 import secrets
 import time
 import hashlib
 import hmac
-from email.mime.text import MIMEText
 from datetime import datetime, timezone
 
 from db import SessionLocal
 from db.models import User
+from admin.email import send_email
 
 SECRET = os.getenv("ADMIN_SECRET_KEY", "dev-secret-change-in-production").encode()
 SESSION_EXPIRY = int(os.getenv("ADMIN_SESSION_EXPIRY", 43200))
 OTP_EXPIRY = 600
 
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "contact@lusansapkota.com.np")
-
-MAIL_SERVER = os.getenv("MAIL_SERVER")
-MAIL_PORT = int(os.getenv("MAIL_PORT", "587"))
-MAIL_USE_TLS = os.getenv("MAIL_USE_TLS", "True").lower() == "true"
-MAIL_USERNAME = os.getenv("MAIL_USERNAME")
-MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
-MAIL_FROM = os.getenv("MAIL_FROM", MAIL_USERNAME)
-FROM_NAME = os.getenv("FROM_NAME", "Portfolio Admin")
 
 PASSWORD_ALGO_VERSION = "v2"
 PASSWORD_ITERATIONS = 600_000
@@ -32,24 +23,6 @@ _pending_otp: dict[str, tuple[str, float]] = {}
 
 def _gen_otp() -> str:
     return f"{secrets.randbelow(1_000_000):06d}"
-
-
-def _send_email(to: str, subject: str, body: str) -> bool:
-    if not MAIL_SERVER or not MAIL_USERNAME or not MAIL_PASSWORD:
-        return False
-    try:
-        msg = MIMEText(body, "html")
-        msg["Subject"] = subject
-        msg["From"] = f"{FROM_NAME} <{MAIL_FROM}>"
-        msg["To"] = to
-        with smtplib.SMTP(MAIL_SERVER, MAIL_PORT, timeout=10) as server:
-            if MAIL_USE_TLS:
-                server.starttls()
-            server.login(MAIL_USERNAME, MAIL_PASSWORD)
-            server.send_message(msg)
-        return True
-    except Exception:
-        return False
 
 
 def send_otp(email: str, username: str) -> str | None:
@@ -62,7 +35,7 @@ def send_otp(email: str, username: str) -> str | None:
     <h1 style="font-family:monospace;letter-spacing:0.3em;color:#d84315">{otp}</h1>
     <p>This code expires in 10 minutes. If you did not request this, please ignore.</p>
     """
-    if _send_email(email, "Your Admin Login OTP", body):
+    if send_email(email, "Your Admin Login OTP", body):
         return otp
     return None
 

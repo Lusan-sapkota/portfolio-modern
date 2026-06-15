@@ -21,7 +21,7 @@ from lcore import load_dotenv
 load_dotenv(str(Path(__file__).parent / ".env"))
 
 from db import SessionLocal
-from db.models import User
+from db.models import User, Newsletter, Contact
 from admin.auth import hash_password
 
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
@@ -45,9 +45,8 @@ def seed():
         admin_count = s.query(User).filter_by(is_admin=True).count()
         if admin_count > 0:
             existing = s.query(User).filter_by(is_admin=True).first()
-            print(f"Admin already exists: '{existing.username}' (id={existing.id}).", file=sys.stderr)
-            print("Only one admin is allowed. To change credentials, use the admin API or `make reset-admin`.", file=sys.stderr)
-            sys.exit(1)
+            print(f"Admin already exists: '{existing.username}' (id={existing.id}). Skipping admin creation.")
+            return
 
         user = User(
             username=ADMIN_USERNAME,
@@ -75,3 +74,89 @@ def seed():
 
 if __name__ == "__main__":
     seed()
+    seed_demo_data()
+
+
+def seed_demo_data():
+    """Seed demo newsletter subscribers and contact submissions.
+
+    Idempotent: skips rows that already exist (matched by unique email).
+    Runs by default for development. Set SEED_DEMO=0 to skip in production.
+    """
+    if os.getenv("SEED_DEMO", "1") != "1":
+        print("Skipping demo data (SEED_DEMO != 1).")
+        return
+
+    s = SessionLocal()
+    try:
+        demo_subs = [
+            {"email": "reader.one@example.com", "name": "Asha", "interests": {"tags": ["projects", "tutorials"]}},
+            {"email": "dev.two@example.com", "name": "Bikram", "interests": {"tags": ["ai-ml"]}},
+            {"email": "curious.three@example.com", "name": "Sita", "interests": {"tags": ["general"]}},
+        ]
+        added_subs = 0
+        for entry in demo_subs:
+            if s.query(Newsletter).filter_by(email=entry["email"]).first():
+                continue
+            s.add(Newsletter(
+                email=entry["email"],
+                name=entry["name"],
+                is_active=True,
+                interests=entry["interests"],
+            ))
+            added_subs += 1
+        if added_subs:
+            print(f"Seeded {added_subs} demo newsletter subscribers.")
+
+        demo_contacts = [
+            {
+                "name": "Anish Pradhan",
+                "email": "anish@example.com",
+                "subject": "Collaboration on AI project",
+                "message": "Hi Lusan, I saw your graph algorithm work and would love to chat about a possible collaboration on an AI-driven analytics tool. Let me know when you have a moment.",
+            },
+            {
+                "name": "Priya Shrestha",
+                "email": "priya@example.com",
+                "subject": "Resume review request",
+                "message": "Hello, I am a final-year CS student interested in full-stack roles. Could you review my resume and share feedback when convenient? Thanks in advance.",
+            },
+            {
+                "name": "Rajesh Kumar",
+                "email": "rajesh@example.com",
+                "subject": "Feedback on your product",
+                "message": "I found your product very useful. I would like to share my feedback and suggestions for improvement. Please let me know if you need any information.",
+            },
+            {
+                "name": "Sita Shrestha",
+                "email": "sita@example.com",
+                "subject": "Inquiry about your services",
+                "message": "Hello, I am interested in learning more about your services. Could you please share the details with me? Thanks in advance.",
+            },
+            {
+                "name": "Lusan 2",
+                "email": "slusan786@gmail.com",
+                "subject": "Inquiry about your products",
+                "message": "Hello, I am interested in learning more about your products. Could you please share the details with me? Thanks in advance.",
+            },
+        ]
+        added_contacts = 0
+        for entry in demo_contacts:
+            if s.query(Contact).filter_by(email=entry["email"], subject=entry["subject"]).first():
+                continue
+            s.add(Contact(
+                name=entry["name"],
+                email=entry["email"],
+                subject=entry["subject"],
+                message=entry["message"],
+                is_spam=False,
+                is_replied=False,
+            ))
+            added_contacts += 1
+        if added_contacts:
+            print(f"Seeded {added_contacts} demo contact submissions.")
+
+        if added_subs or added_contacts:
+            s.commit()
+    finally:
+        s.close()

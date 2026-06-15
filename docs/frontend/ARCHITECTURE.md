@@ -10,6 +10,9 @@ frontend/
 ├── app/
 │   ├── layout.tsx              # Root <html> + global CSS
 │   ├── page.tsx                # /  → <HomeShell>
+│   ├── privacy/page.tsx        # /privacy — static policy page
+│   ├── newsletter/
+│   │   └── unsubscribe/page.tsx  # /newsletter/unsubscribe — calls API
 │   ├── globals.css             # CSS variables, base styles, book shadows
 │   │
 │   ├── components/             # All UI (client + server)
@@ -32,9 +35,23 @@ frontend/
 │   │   └── Platforms.tsx
 │   │
 │   ├── admin/                  # The hidden admin panel
-│   │   ├── layout.tsx          # Auth guard (client component)
+│   │   ├── layout.tsx          # Auth guard + sidebar nav (client component)
 │   │   ├── page.tsx            # Dashboard
-│   │   ├── settings/page.tsx   # Change password
+│   │   ├── settings/page.tsx   # Change password / username
+│   │   ├── security/page.tsx   # Security log + audit
+│   │   ├── subscribers/page.tsx      # Newsletter subscriber list
+│   │   ├── contacts/page.tsx         # Contact form submissions + reply
+│   │   └── newsletter/
+│   │       └── send/
+│   │           ├── page.tsx                  # Orchestrator (~300 LOC)
+│   │           └── _components/
+│   │               ├── ui.tsx                # Shared: Field, Pill, constants, extractTags
+│   │               ├── templates.ts          # 8 pre-built email templates (logo + brand colors)
+│   │               ├── TemplatePicker.tsx    # Template button bar
+│   │               ├── ColorSidebar.tsx      # 12-color palette sidebar
+│   │               ├── PreviewPane.tsx       # Step 02: render + preview
+│   │               ├── RecipientSelector.tsx # Step 03: filter + tag/id picker
+│   │               └── JobProgress.tsx       # Post-send progress view with polling
 │   │   └── login/
 │   │       ├── page.tsx        # Orchestrates the step components
 │   │       └── _components/
@@ -48,6 +65,7 @@ frontend/
 │   │
 │   └── lib/
 │       ├── admin-api.ts        # Token storage + auth fetch wrapper
+│       ├── newsletter.ts       # Public newsletter helpers (subscribe / unsubscribe)
 │       ├── friendly-errors.ts  # Playful error message bucket per context
 │       └── motion.ts           # Shared Framer Motion presets
 │

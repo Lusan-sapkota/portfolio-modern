@@ -32,7 +32,16 @@ CORS_ORIGINS = frozenset(
     ).split(",") if o.strip()
 )
 
-PUBLIC_ROUTES = {"/login", "/verify-otp", "/logout", "/forgot-password", "/reset-password"}
+PUBLIC_ROUTES = {
+    "/login",
+    "/verify-otp",
+    "/logout",
+    "/forgot-password",
+    "/reset-password",
+    "/api/community/newsletter/subscribe",
+    "/api/community/newsletter/unsubscribe",
+    "/api/community/contacts/submit",
+}
 
 RATE_LIMITS = {
     "/login": (5, 60),
