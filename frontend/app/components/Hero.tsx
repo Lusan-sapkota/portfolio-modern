@@ -65,6 +65,7 @@ export function Hero() {
 
   const mainSrc = showFront ? "/assests/frontangle.png" : "/assests/sideangle.png";
   const thumbSrc = showFront ? "/assests/sideangle.png" : "/assests/frontangle.png";
+  const mainDims = showFront ? { w: 1024, h: 1280 } : { w: 1024, h: 1280 };
   const thumbLabel = showFront ? "Side" : "Front";
   const thumbKicker = showFront ? "See the" : "Meet the";
 
@@ -109,20 +110,23 @@ export function Hero() {
           </div>
 
           <div
-            className="relative h-full w-auto aspect-[2/3] max-w-[80vw] sm:max-w-[70vw] will-change-transform char-fade-bottom"
+            className="relative flex h-full max-w-[80vw] sm:max-w-[70vw] items-end justify-center will-change-transform"
             style={{
               transform: `translate3d(${charX}px, ${charY}px, 0)`,
               transition: "transform 240ms cubic-bezier(0.22, 1, 0.36, 1)",
             }}
           >
+            <div className="clay-aura" aria-hidden />
+            <div className="clay-floor" aria-hidden />
             <Image
               key={mainSrc}
               src={mainSrc}
               alt="3D cartoon portrait of Lusan Sapkota"
-              fill
+              width={mainDims.w}
+              height={mainDims.h}
               priority
               sizes="(min-width: 1024px) 50vh, (min-width: 768px) 60vw, 70vw"
-              className="object-contain transition-opacity duration-500"
+              className="clay-character max-h-full w-auto max-w-full transition-opacity duration-500"
             />
           </div>
         </motion.div>
@@ -148,11 +152,18 @@ export function Hero() {
                 Available for work
               </span>
               <span className="hidden sm:inline text-[#1a1a1a]/30">·</span>
-              <span>Nepal</span>
+              <a
+                href="https://earth.google.com/web/search/Kathmandu/@27.70896035,85.3261328,1306.01728711a,16464.8538986d,35y,0h,0t,0r/data=CgRCAggB"
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-[#006064] transition"
+              >
+                Nepal
+              </a>
               <span className="hidden md:inline text-[#1a1a1a]/30">·</span>
-              <a href="https://github.com" target="_blank" rel="noreferrer" className="hover:text-[#006064] transition">GitHub</a>
-              <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="hover:text-[#006064] transition">LinkedIn</a>
-              <a href="https://x.com" target="_blank" rel="noreferrer" className="hover:text-[#006064] transition">X</a>
+              <a href="https://github.com/Lusan-sapkota/" target="_blank" rel="noreferrer" className="hover:text-[#006064] transition">GitHub</a>
+              <a href="https://www.linkedin.com/in/lusan-sapkota-aa087b39b/" target="_blank" rel="noreferrer" className="hover:text-[#006064] transition">LinkedIn</a>
+              <a href="https://x.com/LusanSapkota" target="_blank" rel="noreferrer" className="hover:text-[#006064] transition">X</a>
             </div>
           </div>
 
