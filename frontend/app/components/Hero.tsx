@@ -126,7 +126,7 @@ export function Hero() {
               height={mainDims.h}
               priority
               sizes="(min-width: 1024px) 50vh, (min-width: 768px) 60vw, 70vw"
-              className="clay-character max-h-full w-auto max-w-full transition-opacity duration-500"
+              className="clay-character max-h-full w-auto max-w-full origin-bottom scale-[1.2] transition-opacity duration-500"
             />
           </div>
         </motion.div>
